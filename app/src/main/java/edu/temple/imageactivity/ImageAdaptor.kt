@@ -5,64 +5,47 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 
-class ImageAdaptor internal constructor(context: Context?, data: Array<String>) :
-    RecyclerView.Adapter<ImageAdaptor.ViewHolder>() {
-    private val mData: Array<String>
-    private val mInflater: LayoutInflater
-    private var mClickListener: ItemClickListener? = null
-
-    // inflates the cell layout from xml when needed
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = mInflater.inflate(edu.temple.imageactivity.R.layout.recyclerview_item, parent, false)
-        return ViewHolder(view)
+class ImageAdaptor (private val mContacts: List<Contact>) : RecyclerView.Adapter<ImageAdaptor.ViewHolder>()
+{
+    // Provide a direct reference to each of the views within a data item
+    // Used to cache the views within the item layout for fast access
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        // Your holder should contain and initialize a member variable
+        // for any view that will be set as you render a row
+        val nameTextView = itemView.findViewById<TextView>(edu.temple.imageactivity.R.id.contact_name)
+        val messageButton = itemView.findViewById<Button>(edu.temple.imageactivity.R.id.message_button)
     }
 
-    // binds the data to the TextView in each cell
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.myTextView.text = mData[position]
+    // ... constructor and member variables
+    // Usually involves inflating a layout from XML and returning the holder
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageAdaptor.ViewHolder {
+        val context = parent.context
+        val inflater = LayoutInflater.from(context)
+        // Inflate the custom layout
+        val contactView = inflater.inflate(edu.temple.imageactivity.R.layout.recyclerview_item, parent, false)
+        // Return a new holder instance
+        return ViewHolder(contactView)
     }
 
-    // total number of cells
+    // Involves populating data into the item through holder
+    override fun onBindViewHolder(viewHolder: ImageAdaptor.ViewHolder, position: Int) {
+        // Get the data model based on position
+        val contact: Contact = mContacts.get(position)
+        // Set item views based on your views and data model
+        val textView = viewHolder.nameTextView
+        textView.setText(contact.name)
+        val button = viewHolder.messageButton
+        button.text = if (contact.isOnline) "Message" else "Offline"
+        button.isEnabled = contact.isOnline
+    }
+
+    // Returns the total count of items in the list
     override fun getItemCount(): Int {
-        return mData.size
-    }
-
-    // stores and recycles views as they are scrolled off screen
-    inner class ViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView),
-        View.OnClickListener {
-        var myTextView: TextView
-        override fun onClick(view: View?) {
-            if (mClickListener != null) mClickListener!!.onItemClick(view, adapterPosition)
-        }
-
-        init {
-            myTextView = itemView.findViewById(edu.temple.imageactivity.R.id.info_text)
-            itemView.setOnClickListener(this)
-        }
-    }
-
-    // convenience method for getting data at click position
-    fun getItem(id: Int): String {
-        return mData[id]
-    }
-
-    // allows clicks events to be caught
-    fun setClickListener(itemClickListener: ItemClickListener?) {
-        mClickListener = itemClickListener
-    }
-
-    // parent activity will implement this method to respond to click events
-    interface ItemClickListener {
-        fun onItemClick(view: View?, position: Int)
-    }
-
-    // data is passed into the constructor
-    init {
-        mInflater = LayoutInflater.from(context)
-        mData = data
+        return mContacts.size
     }
 }
